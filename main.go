@@ -20,7 +20,7 @@ import (
 )
 
 var infile = flag.String("infile", "img.png", "path to image (gif, jpeg, png)")
-var nvizinhanca = 100
+var nNeighborhood = flag.Int("n", 10, "n-neighborhood (Integer)")
 var k = 0.5
 var r = float64(128)
 
@@ -81,6 +81,39 @@ func floatify(ints []int) []float64 {
 		floats[idx] = float64(val)
 	}
 	return floats
+}
+
+func barnsen(oldPixel color.Gray, pixlist []int, limiarImg *image.Gray, x int, y int) {
+	if int(oldPixel.Y) >= int((max(pixlist)+min(pixlist))/2) {
+		limiarImg.Set(x, y, color.GrayModel.Convert(color.RGBA{255, 255, 255, 255}))
+	} else {
+		limiarImg.Set(x, y, color.GrayModel.Convert(color.RGBA{0, 0, 0, 255}))
+	}
+}
+func niblack(oldPixel color.Gray, pixlist []int, limiarImg *image.Gray, x int, y int) {
+	if int(oldPixel.Y) >= average(pixlist)+int(k*math.Sqrt(stat.Variance(floatify(pixlist), nil))) {
+		limiarImg.Set(x, y, color.GrayModel.Convert(color.RGBA{255, 255, 255, 255}))
+	} else {
+		limiarImg.Set(x, y, color.GrayModel.Convert(color.RGBA{0, 0, 0, 255}))
+	}
+
+}
+
+func suapiet(oldPixel color.Gray, pixlist []int, limiarImg *image.Gray, x int, y int) {
+	if int(oldPixel.Y) >= average(pixlist)+int(1+k*(math.Sqrt((stat.Variance(floatify(pixlist), nil))/r)-1)) {
+		limiarImg.Set(x, y, color.GrayModel.Convert(color.RGBA{255, 255, 255, 255}))
+	} else {
+		limiarImg.Set(x, y, color.GrayModel.Convert(color.RGBA{0, 0, 0, 255}))
+	}
+
+}
+
+func globalLimiar(oldPixel color.Gray, avg int, limiarImg *image.Gray, x int, y int) {
+	if int(oldPixel.Y) >= avg {
+		limiarImg.Set(x, y, color.GrayModel.Convert(color.RGBA{255, 255, 255, 255}))
+	} else {
+		limiarImg.Set(x, y, color.GrayModel.Convert(color.RGBA{0, 0, 0, 255}))
+	}
 }
 
 func main() {
@@ -167,12 +200,7 @@ func main() {
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
 			oldPixel := img.GrayAt(x, y)
-			if int(oldPixel.Y) >= avg {
-				limiarImg.Set(x, y, color.GrayModel.Convert(color.RGBA{255, 255, 255, 255}))
-			} else {
-				limiarImg.Set(x, y, color.GrayModel.Convert(color.RGBA{0, 0, 0, 255}))
-			}
-
+			go globalLimiar(oldPixel, avg, limiarImg, x, y)
 		}
 	}
 	outFile, err := os.Create("limiarGlobal.png")
@@ -185,13 +213,9 @@ func main() {
 
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			pixlist := flatten(img, x, y, nvizinhanca)
+			pixlist := flatten(img, x, y, *nNeighborhood)
 			oldPixel := img.GrayAt(x, y)
-			if int(oldPixel.Y) >= int((max(pixlist)+min(pixlist))/2) {
-				limiarImg.Set(x, y, color.GrayModel.Convert(color.RGBA{255, 255, 255, 255}))
-			} else {
-				limiarImg.Set(x, y, color.GrayModel.Convert(color.RGBA{0, 0, 0, 255}))
-			}
+			go barnsen(oldPixel, pixlist, limiarImg, x, y)
 
 		}
 	}
@@ -205,14 +229,9 @@ func main() {
 
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			pixlist := flatten(img, x, y, nvizinhanca)
+			pixlist := flatten(img, x, y, *nNeighborhood)
 			oldPixel := img.GrayAt(x, y)
-			if int(oldPixel.Y) >= average(pixlist)+int(k*math.Sqrt(stat.Variance(floatify(pixlist), nil))) {
-				limiarImg.Set(x, y, color.GrayModel.Convert(color.RGBA{255, 255, 255, 255}))
-			} else {
-				limiarImg.Set(x, y, color.GrayModel.Convert(color.RGBA{0, 0, 0, 255}))
-			}
-
+			go niblack(oldPixel, pixlist, limiarImg, x, y)
 		}
 	}
 	outFile3, err := os.Create("limiarNiblack.png")
@@ -225,13 +244,9 @@ func main() {
 
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			pixlist := flatten(img, x, y, nvizinhanca)
+			pixlist := flatten(img, x, y, *nNeighborhood)
 			oldPixel := img.GrayAt(x, y)
-			if int(oldPixel.Y) >= average(pixlist)+int(1+k*(math.Sqrt((stat.Variance(floatify(pixlist), nil))/r)-1)) {
-				limiarImg.Set(x, y, color.GrayModel.Convert(color.RGBA{255, 255, 255, 255}))
-			} else {
-				limiarImg.Set(x, y, color.GrayModel.Convert(color.RGBA{0, 0, 0, 255}))
-			}
+			go suapiet(oldPixel, pixlist, limiarImg, x, y)
 
 		}
 	}
