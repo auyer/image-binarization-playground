@@ -24,7 +24,7 @@ var nNeighborhood = flag.Int("n", 10, "n-neighborhood (Integer)")
 var k = 0.5
 var r = float64(128)
 
-// Reduce condences data from a 256 length array to a 50 length
+// Reduce data from a 256 length array to a 50 length
 func reduce(list []int) []int {
 	if len(list) > 5 {
 
@@ -69,12 +69,6 @@ func min(list []int) float64 {
 	return float64(list[len(list)-1])
 }
 
-// func floatify(list []int) []float64 {
-// 	if len(list) > 1 {
-// 		return append(floatify(list[1:]), float64(list[len(list)-1]))
-// 	}
-// 	return float64(list[len(list)-1])
-// }
 func floatify(ints []int) []float64 {
 	floats := make([]float64, len(ints))
 	for idx, val := range ints {
@@ -219,9 +213,9 @@ func main() {
 
 		}
 	}
-	outFile2, err := os.Create("limiarBernsen.png")
+	outFile2, err := os.Create("binarBernsen.png")
 	if err != nil {
-		log.Fatalf("Error creating file %s: %v", "limiarBernsen.png", err)
+		log.Fatalf("Error creating file %s: %v", "binarBernsen.png", err)
 	}
 	png.Encode(outFile2, limiarImg)
 
@@ -234,9 +228,9 @@ func main() {
 			go niblack(oldPixel, pixlist, limiarImg, x, y)
 		}
 	}
-	outFile3, err := os.Create("limiarNiblack.png")
+	outFile3, err := os.Create("binarNiblack.png")
 	if err != nil {
-		log.Fatalf("Error creating file %s: %v", "limiarNiblack.png", err)
+		log.Fatalf("Error creating file %s: %v", "binarNiblack.png", err)
 	}
 	png.Encode(outFile3, limiarImg)
 
@@ -250,9 +244,9 @@ func main() {
 
 		}
 	}
-	outFile4, err := os.Create("limiarSauPie.png")
+	outFile4, err := os.Create("binarSauvola.png")
 	if err != nil {
-		log.Fatalf("Error creating file %s: %v", "limiarSauPie.png", err)
+		log.Fatalf("Error creating file %s: %v", "binarSauvola.png", err)
 	}
 	png.Encode(outFile4, limiarImg)
 
