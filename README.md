@@ -1,1 +1,2 @@
-limiar -infile path -n n-vizinhaça
+# Limiar Playground
+limiar -infile path -n 6
